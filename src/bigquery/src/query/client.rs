@@ -133,6 +133,11 @@ impl BigQuery {
         })
     }
 
+    /// Returns the configured project ID of this client.
+    pub fn project_id(&self) -> Option<&str> {
+        self.project_id.as_deref()
+    }
+
     /// Creates a request builder to configure and execute a SQL query.
     ///
     /// This method returns a [`Query`] builder used to set parameters, specify options,
