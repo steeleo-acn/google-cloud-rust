@@ -156,6 +156,11 @@ impl BigQuery {
         })
     }
 
+    /// Returns the configured project ID of this client.
+    pub fn project_id(&self) -> Option<&str> {
+        self.project_id.as_deref()
+    }
+
     /// Returns `true` if BigQuery Storage Read API acceleration is enabled on this client.
     #[cfg_attr(not(test), allow(dead_code))]
     pub(crate) fn is_storage_read_enabled(&self) -> bool {
