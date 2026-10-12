@@ -131,7 +131,7 @@ impl RetryContext {
         loop {
             self.state.attempt_count += 1;
             // Box heavy RPC call future to avoid large stack frames.
-            match Box::pin(self.execute_once(&project_id)).await {
+            match Box::pin(self.execute_once(&project_id, self.template.job_id.as_deref())).await {
                 Ok(query) => return Ok(query),
                 Err(err) => match self.on_error(err) {
                     JobRetryResult::Continue(delay, _) => {
@@ -152,21 +152,21 @@ impl RetryContext {
         self.template.request.force_job_path() || dry_run
     }
 
-    async fn execute_once(&self, project_id: &str) -> Result<QueryHandle> {
+    async fn execute_once(&self, project_id: &str, job_id: Option<&str>) -> Result<QueryHandle> {
         if self.force_job_path() {
-            self.execute_jobs_insert(project_id).await
+            self.execute_jobs_insert(project_id, job_id).await
         } else {
             self.execute_jobs_query(project_id).await
         }
     }
 
     // Execute the query using the jobs.insert method.
-    async fn execute_jobs_insert(&self, project_id: &str) -> Result<QueryHandle> {
+    async fn execute_jobs_insert(&self, project_id: &str, job_id: Option<&str>) -> Result<QueryHandle> {
         let job_service = self.template.job_service.clone();
         let page_size = self.template.request.page_size;
 
         let job_config: JobConfiguration = self.template.request.clone().into();
-        let job_ref = generate_job_reference(project_id, &self.template.request.location);
+        let job_ref = generate_job_reference(project_id, job_id, &self.template.request.location);
         let job = Job::new()
             .set_configuration(job_config)
             .set_job_reference(job_ref.clone());

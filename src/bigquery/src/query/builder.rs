@@ -59,6 +59,7 @@ pub struct Query {
     pub(crate) job_service: Arc<JobService>,
     pub(crate) request: QueryRequest,
     pub(crate) project_id: Option<String>,
+    pub(crate) job_id: Option<String>,
     pub(crate) job_retry_policy: Arc<dyn JobRetryPolicy>,
 }
 
@@ -72,6 +73,7 @@ impl Query {
                 .set_use_legacy_sql(wkt::BoolValue::from(false))
                 .set_job_creation_mode(JobCreationMode::JobCreationOptional),
             project_id: None,
+            job_id: None,
             job_retry_policy: default_job_retry_policy(),
         }
     }
@@ -103,6 +105,26 @@ impl Query {
     /// ```
     pub fn with_project_id<S: Into<String>>(mut self, project_id: S) -> Self {
         self.project_id = Some(project_id.into());
+        self
+    }
+
+    /// Sets the job ID to run the query under.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use google_cloud_bigquery::client::BigQuery;
+    /// # async fn sample(client: BigQuery) -> anyhow::Result<()> {
+    /// let query_handle = client
+    ///     .query("SELECT 1 AS count")
+    ///     .with_job_id("my-job-id")
+    ///     .send()
+    ///     .await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn with_job_id<S: Into<String>>(mut self, job_id: S) -> Self {
+        self.job_id = Some(job_id.into());
         self
     }
 
@@ -187,8 +209,8 @@ impl Query {
 //
 // BigQuery does not strictly define a format for job IDs, just a limit in size.
 // See https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/JobReference
-pub(crate) fn generate_job_reference(project_id: &str, location: &str) -> JobReference {
-    let job_id = generate_prefixed_id(JOB_ID_PREFIX);
+pub(crate) fn generate_job_reference(project_id: &str, job_id: Option<&str>, location: &str) -> JobReference {
+    let job_id = job_id.map(|s| s.to_string()).unwrap_or_else(|| generate_prefixed_id(JOB_ID_PREFIX));
     let mut job_ref = JobReference::new()
         .set_project_id(project_id.to_string())
         .set_job_id(job_id);
