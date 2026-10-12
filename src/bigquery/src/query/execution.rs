@@ -153,10 +153,10 @@ impl RetryContext {
     }
 
     async fn execute_once(&self, project_id: &str, job_id: Option<&str>) -> Result<QueryHandle> {
-        if self.force_job_path() {
+        if self.force_job_path() || job_id.is_some() {
             self.execute_jobs_insert(project_id, job_id).await
         } else {
-            self.execute_jobs_query(project_id, job_id).await
+            self.execute_jobs_query(project_id).await
         }
     }
 
@@ -210,7 +210,7 @@ impl RetryContext {
     }
 
     // Execute the query using the jobs.query method.
-    async fn execute_jobs_query(&self, project_id: &str, job_id: Option<&str>) -> Result<QueryHandle> {
+    async fn execute_jobs_query(&self, project_id: &str) -> Result<QueryHandle> {
         let job_service = self.template.job_service.clone();
         let page_size = self.template.request.page_size;
 
