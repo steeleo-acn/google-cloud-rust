@@ -214,7 +214,7 @@ impl RetryContext {
         let job_service = self.template.job_service.clone();
         let page_size = self.template.request.page_size;
 
-        let query_request_id = job_id.map(String::from).unwrap_or_else(|| generate_prefixed_id(QUERY_REQUEST_ID_PREFIX)) ;
+        let query_request_id = generate_prefixed_id(QUERY_REQUEST_ID_PREFIX);
         let query_request: QueryRequest = self.template.request.clone().into();
         let query_request = query_request
             .set_format_options(DataFormatOptions::new().set_use_int64_timestamp(true))
