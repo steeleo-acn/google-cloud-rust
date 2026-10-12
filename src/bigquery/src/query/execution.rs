@@ -156,7 +156,7 @@ impl RetryContext {
         if self.force_job_path() {
             self.execute_jobs_insert(project_id, job_id).await
         } else {
-            self.execute_jobs_query(project_id).await
+            self.execute_jobs_query(project_id, job_id).await
         }
     }
 
@@ -210,11 +210,11 @@ impl RetryContext {
     }
 
     // Execute the query using the jobs.query method.
-    async fn execute_jobs_query(&self, project_id: &str) -> Result<QueryHandle> {
+    async fn execute_jobs_query(&self, project_id: &str, job_id: Option<&str>) -> Result<QueryHandle> {
         let job_service = self.template.job_service.clone();
         let page_size = self.template.request.page_size;
 
-        let query_request_id = generate_prefixed_id(QUERY_REQUEST_ID_PREFIX);
+        let query_request_id = job_id.map(String::from).unwrap_or_else(|| generate_prefixed_id(QUERY_REQUEST_ID_PREFIX)) ;
         let query_request: QueryRequest = self.template.request.clone().into();
         let query_request = query_request
             .set_format_options(DataFormatOptions::new().set_use_int64_timestamp(true))
