@@ -210,7 +210,7 @@ impl Query {
 // BigQuery does not strictly define a format for job IDs, just a limit in size.
 // See https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/JobReference
 pub(crate) fn generate_job_reference(project_id: &str, job_id: Option<&str>, location: &str) -> JobReference {
-    let job_id = job_id.map(|s| s.to_string()).unwrap_or_else(|| generate_prefixed_id(JOB_ID_PREFIX));
+    let job_id = job_id.map(String::from).unwrap_or_else(|| generate_prefixed_id(JOB_ID_PREFIX));
     let mut job_ref = JobReference::new()
         .set_project_id(project_id.to_string())
         .set_job_id(job_id);
